@@ -1,0 +1,6 @@
+pytest==5.0.0
+apache-airflow==1.10.3
+# recursive dependencies of airflow
+flask==1.0.4
+jinja2==2.10.0
+werkzeug==0.14.1
