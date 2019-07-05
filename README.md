@@ -38,14 +38,37 @@ Extra: must be left empty
 
 1. Copy `examples/bedrock_dag.py` to `airflow/dags/` (here `airflow` is your Airflow folder)
 2. Update GitHub credentials passed to `CreatePipelineOperator` to match your own repository, including
+
 ```
 uri: link to repository on GitHub, e.g. "https://github.com/org/example.git"
 ref: branch name or commit id, e.g. "master"
 username: username if repository is private (Optional)
 password: password or access token for the private repository (Optional)
 ```
+
 3. Run `bedrock_dag` from airflow UI or individual tasks from the command line, for e.g.
+
 ```bash
 $> airflow test bedrock_dag create 2019-05-21
 ```
+
 4. [Optional] Login to https://bedrock.basis-ai.com to verify that the training pipeline has been created
+
+## Developing
+
+To start developing your own airflow operators for `bedrock_plugin`, you will need to install the required development dependencies.
+We recommend doing it in a virtual environment to avoid potential dependency conflicts. For example,
+
+```bash
+$ python3 -m venv venv
+$ source venv/bin/activate
+$ pip install -r requirements-dev.txt
+```
+
+### Running unit tests
+
+Once your local development environment is setup, you can verify that everything is working by executing our unit tests with `pytest`.
+
+```bash
+$ pytest -v tests
+```
