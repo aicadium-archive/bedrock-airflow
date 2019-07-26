@@ -1,5 +1,7 @@
 # Bedrock Airflow Plugin
 
+[![Build Status](https://travis-ci.com/basisai/bedrock-airflow.svg?branch=master)](https://travis-ci.com/basisai/bedrock-airflow)
+
 This folder contains Bedrock-specific plugin, to be used with Airflow.
 
 ## Setup
