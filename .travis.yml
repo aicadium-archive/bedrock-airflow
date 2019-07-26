@@ -24,7 +24,9 @@ matrix:
     - dist: xenial
       # black doesn't run on old Python versions
       python: 3.7
-      install: pip install -r requirements-lint.txt
+      install:
+        - pip install -r requirements-lint.txt
+        - pip install -r requirements-dev.txt
       script:
         - tests/lint.sh
         - tests/test.sh
