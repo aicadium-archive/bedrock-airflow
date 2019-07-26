@@ -1,0 +1,12 @@
+version: "2.1"
+services:
+  webserver:
+    environment: &options
+      - GIT_REPO_URI=url
+      - GIT_REPO_USERNAME=username
+      - GIT_REPO_PASSWORD=password
+      - GIT_REPO_REF=master
+      - GIT_REPO_CONFIG_FILE_PATH=bedrock.hcl
+  worker:
+    environment:
+      *options

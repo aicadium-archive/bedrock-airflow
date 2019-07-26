@@ -1,0 +1,11 @@
+language: python
+python:
+  # Supported airflow versions
+  - "2.7"
+  - "3.5"
+install:
+  - pip install -r requirements-dev.txt
+script:
+  - black --check tests bedrock_plugin.py
+  - flake8 bedrock_plugin.py tests
+  - pytest -vv tests

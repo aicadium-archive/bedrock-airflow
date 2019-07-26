@@ -13,6 +13,7 @@ def test_create_pipeline(airflow_connection):
     ref = "some_ref"
     username = "some_username"
     password = "some_password"
+    config_file_path = "bedrock.hcl"
 
     dag = DAG("bedrock_dag", start_date=datetime.datetime.now())
     op = CreatePipelineOperator(
@@ -24,6 +25,7 @@ def test_create_pipeline(airflow_connection):
         ref=ref,
         username=username,
         password=password,
+        config_file_path=config_file_path,
     )
 
     resp = PropertyMock()
@@ -32,6 +34,15 @@ def test_create_pipeline(airflow_connection):
         op.execute(None)
 
     data = json.dumps(
-        {"name": name, "uri": uri, "ref": ref, "username": username, "password": password}
+        {
+            "name": name,
+            "uri": uri,
+            "ref": ref,
+            "username": username,
+            "password": password,
+            "config_file_path": config_file_path,
+        }
     )
-    assert mock_resp.mock_calls == [call(CreatePipelineOperator.CREATE_PIPELINE_PATH, data=data)]
+    assert mock_resp.mock_calls == [
+        call(CreatePipelineOperator.CREATE_PIPELINE_PATH, data=data)
+    ]

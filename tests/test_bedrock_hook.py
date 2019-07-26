@@ -17,13 +17,15 @@ def test_authenticate(airflow_connection):
     access_token = "some_access_token"
     expires_in = 60
     now = datetime.datetime(2001, 1, 1, 0, 0, 0)
-    authenticate_return_value = f'{{"access_token":"{access_token}","expires_in":"{expires_in}"}}'
+    authenticate_return_value = (
+        f'{{"access_token":"{access_token}","expires_in":"{expires_in}"}}'
+    )
 
     h = BedrockHook(method="POST", bedrock_conn_id=airflow_connection)
 
-    with patch.object(HTTPResponse, "read", return_value=authenticate_return_value), patch(
-        "bedrock_plugin.datetime"
-    ) as mock_datetime:
+    with patch.object(
+        HTTPResponse, "read", return_value=authenticate_return_value
+    ), patch("bedrock_plugin.datetime") as mock_datetime:
         mock_datetime.datetime.now.return_value = now
         mock_datetime.timedelta.side_effect = datetime.timedelta
 

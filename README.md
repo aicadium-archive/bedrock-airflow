@@ -53,22 +53,3 @@ $> airflow test bedrock_dag create 2019-05-21
 ```
 
 4. [Optional] Login to https://bedrock.basis-ai.com to verify that the training pipeline has been created
-
-## Developing
-
-To start developing your own airflow operators for `bedrock_plugin`, you will need to install the required development dependencies.
-We recommend doing it in a virtual environment to avoid potential dependency conflicts. For example,
-
-```bash
-$ python3 -m venv venv
-$ source venv/bin/activate
-$ pip install -r requirements-dev.txt
-```
-
-### Running unit tests
-
-Once your local development environment is setup, you can verify that everything is working by executing our unit tests with `pytest`.
-
-```bash
-$ pytest -v tests
-```
