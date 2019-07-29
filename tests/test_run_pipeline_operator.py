@@ -119,15 +119,15 @@ def test_run_pipeline_failure(airflow_connection):
     def bedrockhook_run_side_effect(endpoint, *_args, **_kwargs):
         resp = PropertyMock()
         if endpoint == RunPipelineOperator.RUN_PIPELINE_PATH.format(pipeline_id):
-            resp.content = f'{{"entity_id": "{run_id}"}}'
+            resp.content = '{{"entity_id": "{}"}}'.format(run_id)
         elif endpoint == RunPipelineOperator.GET_PIPELINE_RUN_PATH.format(run_id):
-            resp.content = f'{{"status": "{fail_status}"}}'
+            resp.content = '{{"status": "{}"}}'.format(fail_status)
         elif endpoint == RunPipelineOperator.GET_ENVIRONMENT_PATH:
-            resp.content = f'[{{"public_id": "{environment_id}"}}]'
+            resp.content = '[{{"public_id": "{}"}}]'.format(environment_id)
         elif endpoint == RunPipelineOperator.STOP_PIPELINE_RUN_PATH.format(run_id):
-            resp.content = f"OK"
+            resp.content = "OK"
         else:
-            pytest.fail(f"Called with bad args: {endpoint}")
+            pytest.fail("Called with bad args: {}".format(endpoint))
         return resp
 
     with patch.object(
@@ -135,7 +135,7 @@ def test_run_pipeline_failure(airflow_connection):
     ) as mock_resp, pytest.raises(Exception) as ex:
         op.execute(None)
 
-    assert ex.value.args[0] == f"Run status is {fail_status}"
+    assert ex.value.args[0] == "Run status is {}".format(fail_status)
     assert mock_resp.call_count >= 4
 
     get_env_call, run_pipeline_call, check_status_call, stop_run_call, *others = (

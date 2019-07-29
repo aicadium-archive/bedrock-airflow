@@ -44,8 +44,8 @@ def test_get_conn_headers(airflow_connection):
 
     headers = h.get_conn(None).headers
 
-    assert headers["Authorization"] == f"Bearer {bedrock_token}"
-    assert headers["Content-Type"] == f"application/json"
+    assert headers["Authorization"] == "Bearer {}".format(bedrock_token)
+    assert headers["Content-Type"] == "application/json"
 
 
 def test_get_conn_calls_authenticate_with_no_token(airflow_connection):
