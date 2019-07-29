@@ -15,7 +15,12 @@ $ pip install -r requirements-dev.txt
 
 You can start a local airflow setup using the provided docker-compose file. The web UI will be available at [http://localhost:8888](http://localhost:8888). The plugin and example DAG put into the docker container is symlinked to those in the repo. The DB is persisted for convenience; to nuke it delete the `./pgdata` directory.
 
+You need to symlink the plugin and example DAG into `plugins` and `dags`.
+
 ```bash
+ln -s ../examples/bedrock_dag.py ./dags/bedrock_dag.symlink.py
+ln -s ../bedrock_plugin.py ./plugins/bedrock_plugin.symlink.py
+
 docker-compose up
 ```
 
