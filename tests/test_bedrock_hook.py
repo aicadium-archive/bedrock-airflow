@@ -1,8 +1,12 @@
 import datetime
+import sys
 from http.client import HTTPResponse
-from unittest.mock import Mock, patch
-
 from bedrock_plugin import BedrockHook
+
+if sys.version_info >= (3, 3):
+    from unittest.mock import Mock, patch
+else:
+    from mock import Mock, patch
 
 
 def test_init(airflow_connection):

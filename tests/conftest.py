@@ -1,8 +1,12 @@
-from unittest.mock import patch
-
+import sys
 import pytest
 from airflow.hooks.http_hook import HttpHook
 from airflow.models import Connection
+
+if sys.version_info >= (3, 3):
+    from unittest.mock import patch
+else:
+    from mock import patch
 
 
 def get_connection_mock(conn_id):

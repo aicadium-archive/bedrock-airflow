@@ -1,10 +1,13 @@
 import datetime
 import json
-from unittest.mock import PropertyMock, call, patch
-
+import sys
 from airflow import DAG
-
 from bedrock_plugin import BedrockHook, CreatePipelineOperator
+
+if sys.version_info >= (3, 3):
+    from unittest.mock import PropertyMock, call, patch
+else:
+    from mock import PropertyMock, call, patch
 
 
 def test_create_pipeline(airflow_connection):
