@@ -45,14 +45,15 @@ def test_run_pipeline(airflow_connection):
 
     assert mock_resp.call_count >= 3
 
-    # get_env_call, run_pipeline_call, check_status_call, *others = mock_resp.mock_calls
     get_env_call = mock_resp.mock_calls[0]
-    run_pipeline_call = mock_resp.mock_calls[1]
-    check_status_call = mock_resp.mock_calls[2]
     assert get_env_call[1][0] == RunPipelineOperator.GET_ENVIRONMENT_PATH
+
+    run_pipeline_call = mock_resp.mock_calls[1]
     assert run_pipeline_call[1][0] == RunPipelineOperator.RUN_PIPELINE_PATH.format(
         pipeline_id
     )
+
+    check_status_call = mock_resp.mock_calls[2]
     assert check_status_call[1][0] == RunPipelineOperator.GET_PIPELINE_RUN_PATH.format(
         run_id
     )
@@ -100,14 +101,15 @@ def test_run_pipeline_waiting(airflow_connection):
 
     assert mock_resp.call_count >= 3
 
-    # get_env_call, run_pipeline_call, check_status_call, *others = mock_resp.mock_calls
     get_env_call = mock_resp.mock_calls[0]
-    run_pipeline_call = mock_resp.mock_calls[1]
-    check_status_call = mock_resp.mock_calls[2]
     assert get_env_call[1][0] == RunPipelineOperator.GET_ENVIRONMENT_PATH
+
+    run_pipeline_call = mock_resp.mock_calls[1]
     assert run_pipeline_call[1][0] == RunPipelineOperator.RUN_PIPELINE_PATH.format(
         pipeline_id
     )
+
+    check_status_call = mock_resp.mock_calls[2]
     assert check_status_call[1][0] == RunPipelineOperator.GET_PIPELINE_RUN_PATH.format(
         run_id
     )
@@ -149,20 +151,20 @@ def test_run_pipeline_failure(airflow_connection):
     assert ex.value.args[0] == "Run status is {}".format(fail_status)
     assert mock_resp.call_count >= 4
 
-    # get_env_call, run_pipeline_call, check_status_call, stop_run_call, *others = (
-    #     mock_resp.mock_calls
-    # )
     get_env_call = mock_resp.mock_calls[0]
-    run_pipeline_call = mock_resp.mock_calls[1]
-    check_status_call = mock_resp.mock_calls[2]
-    stop_run_call = mock_resp.mock_calls[3]
     assert get_env_call[1][0] == RunPipelineOperator.GET_ENVIRONMENT_PATH
+
+    run_pipeline_call = mock_resp.mock_calls[1]
     assert run_pipeline_call[1][0] == RunPipelineOperator.RUN_PIPELINE_PATH.format(
         pipeline_id
     )
+
+    check_status_call = mock_resp.mock_calls[2]
     assert check_status_call[1][0] == RunPipelineOperator.GET_PIPELINE_RUN_PATH.format(
         run_id
     )
+
+    stop_run_call = mock_resp.mock_calls[3]
     assert stop_run_call[1][0] == RunPipelineOperator.STOP_PIPELINE_RUN_PATH.format(
         run_id
     )
