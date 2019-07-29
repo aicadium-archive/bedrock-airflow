@@ -56,7 +56,7 @@ def test_get_conn_calls_authenticate_with_no_token(airflow_connection):
     h._authenticate = auth_mock
 
     h.get_conn(None)
-    auth_mock.assert_called_once()
+    auth_mock.assert_called_once_with()
 
 
 def test_get_conn_calls_authenticate_with_expired_token(airflow_connection):
@@ -67,4 +67,4 @@ def test_get_conn_calls_authenticate_with_expired_token(airflow_connection):
     h._authenticate = auth_mock
 
     h.get_conn(None)
-    auth_mock.assert_called_once()
+    auth_mock.assert_called_once_with()
