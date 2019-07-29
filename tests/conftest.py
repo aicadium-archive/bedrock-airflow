@@ -5,7 +5,7 @@ from airflow.hooks.http_hook import HttpHook
 from airflow.models import Connection
 
 
-def get_connection_mock(conn_id: str):
+def get_connection_mock(conn_id):
     conn = Connection(
         conn_id=conn_id,
         conn_type="HTTP",

@@ -24,11 +24,13 @@ def test_run_pipeline(airflow_connection):
     def bedrockhook_run_side_effect(endpoint, *_args, **_kwargs):
         resp = PropertyMock()
         if endpoint == RunPipelineOperator.RUN_PIPELINE_PATH.format(pipeline_id):
-            resp.content = f'{{"entity_id": "{run_id}"}}'
+            resp.content = '{{"entity_id": "{}"}}'.format(run_id)
         elif endpoint == RunPipelineOperator.GET_PIPELINE_RUN_PATH.format(run_id):
-            resp.content = f'{{"status": "{RunPipelineOperator.SUCCESS_STATUS[0]}"}}'
+            resp.content = '{{"status": "{}"}}'.format(
+                RunPipelineOperator.SUCCESS_STATUS[0]
+            )
         elif endpoint == RunPipelineOperator.GET_ENVIRONMENT_PATH:
-            resp.content = f'[{{"public_id": "{environment_id}"}}]'
+            resp.content = '[{{"public_id": "{}"}}]'.format(environment_id)
         else:
             pytest.fail("Called with bad args")
         return resp
@@ -68,19 +70,21 @@ def test_run_pipeline_waiting(airflow_connection):
     def bedrockhook_run_side_effect(endpoint, *_args, **_kwargs):
         resp = PropertyMock()
         if endpoint == RunPipelineOperator.RUN_PIPELINE_PATH.format(pipeline_id):
-            resp.content = f'{{"entity_id": "{run_id}"}}'
+            resp.content = '{{"entity_id": "{}"}}'.format(run_id)
         elif endpoint == RunPipelineOperator.GET_PIPELINE_RUN_PATH.format(run_id):
             nonlocal has_waited
 
             if not has_waited:
-                resp.content = f'{{"status": "{RunPipelineOperator.WAIT_STATUS[0]}"}}'
+                resp.content = '{{"status": "{}"}}'.format(
+                    RunPipelineOperator.WAIT_STATUS[0]
+                )
                 has_waited = True
             else:
-                resp.content = (
-                    f'{{"status": "{RunPipelineOperator.SUCCESS_STATUS[0]}"}}'
+                resp.content = '{{"status": "{}"}}'.format(
+                    RunPipelineOperator.SUCCESS_STATUS[0]
                 )
         elif endpoint == RunPipelineOperator.GET_ENVIRONMENT_PATH:
-            resp.content = f'[{{"public_id": "{environment_id}"}}]'
+            resp.content = '[{{"public_id": "{}"}}]'.format(environment_id)
         else:
             pytest.fail("Called with bad args")
         return resp

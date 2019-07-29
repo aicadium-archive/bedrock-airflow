@@ -17,8 +17,8 @@ def test_authenticate(airflow_connection):
     access_token = "some_access_token"
     expires_in = 60
     now = datetime.datetime(2001, 1, 1, 0, 0, 0)
-    authenticate_return_value = (
-        f'{{"access_token":"{access_token}","expires_in":"{expires_in}"}}'
+    authenticate_return_value = '{{"access_token":"{}","expires_in":"{}"}}'.format(
+        access_token, expires_in
     )
 
     h = BedrockHook(method="POST", bedrock_conn_id=airflow_connection)

@@ -81,7 +81,7 @@ class CreatePipelineOperator(BaseOperator):
         username,
         password,
         config_file_path="bedrock.hcl",
-        **kwargs,
+        **kwargs
     ):
         super().__init__(**kwargs)
         self.conn_id = conn_id
@@ -162,7 +162,9 @@ class RunPipelineOperator(BaseOperator):
         data = json.loads(res.content)
         pipeline_run_id = data["entity_id"]
         self.pipeline_run_id = pipeline_run_id  # Used for cleanup only
-        self.log.info("Pipeline successfully run, pipeline run ID: {}".format(pipeline_run_id))
+        self.log.info(
+            "Pipeline successfully run, pipeline run ID: {}".format(pipeline_run_id)
+        )
 
         # Poll pipeline run status
         while True:
