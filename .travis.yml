@@ -1,12 +1,6 @@
 language: python
 
 matrix:
-  allow_failures:
-    # the operator is not 2.7-compatiable
-    - python: 2.7
-    # the operator is not 3.5-compatiable
-    - python: 3.5
-
   include:
     # airflow supports Python 2.7 and 3.5
     - python: 2.7
@@ -19,10 +13,17 @@ matrix:
       script:
         - tests/test.sh
 
+    - python: 3.6
+      install:
+        - pip install -r requirements-lint.txt
+        - pip install -r requirements-dev.txt
+      script:
+        - tests/lint.sh
+        - tests/test.sh
+
     # Needed for Python >= 3.7
     # https://docs.travis-ci.com/user/languages/python/#python-37-and-higher
     - dist: xenial
-      # black doesn't run on old Python versions
       python: 3.7
       install:
         - pip install -r requirements-lint.txt
