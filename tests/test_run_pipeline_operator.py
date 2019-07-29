@@ -127,7 +127,6 @@ def test_run_pipeline_failure(airflow_connection):
         elif endpoint == RunPipelineOperator.STOP_PIPELINE_RUN_PATH.format(run_id):
             resp.content = f"OK"
         else:
-            print(endpoint)
             pytest.fail(f"Called with bad args: {endpoint}")
         return resp
 
