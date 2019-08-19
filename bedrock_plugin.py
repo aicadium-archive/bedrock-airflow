@@ -119,6 +119,25 @@ class CreatePipelineOperator(BaseOperator):
 
 
 class RunPipelineOperator(BaseOperator):
+    """Runs a pipeline and monitors it
+
+    Attributes
+    ----------
+    conn_id : str
+        Connection that has the base API url
+
+    pipeline_id : str
+        Pipeline public id
+
+    run_source_commit : str
+        The git commit version to run. If the branch is specified, the
+        latest commit of the branch is fetched, else if None is specified,
+        the commit version when the pipeline was created will be fetched
+
+    status_poke_interval : int
+        Interval to check the status of the pipeline
+    """
+
     GET_ENVIRONMENT_PATH = "{}/environment/".format(API_VERSION)
     RUN_PIPELINE_PATH = "{}/pipeline/{{}}/run/".format(API_VERSION)
     GET_PIPELINE_RUN_PATH = "{}/run/{{}}".format(API_VERSION)
