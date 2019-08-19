@@ -39,7 +39,10 @@ with DAG(dag_id="bedrock_dag_v2", start_date=days_ago(1), catchup=False) as dag:
         ),
         method="POST",
         data=json.dumps(
-            {"environment_public_id": run_options["environment_public_id"]}
+            {
+                "environment_public_id": run_options["environment_public_id"],
+                "run_source_commit": "master",
+            }
         ),
         headers=HEADERS,
         response_check=lambda response: response.status_code == 202,
@@ -53,7 +56,7 @@ with DAG(dag_id="bedrock_dag_v2", start_date=days_ago(1), catchup=False) as dag:
         if status == "Succeeded":
             return True
         if status in ["Failed", "Stopped"]:
-            raise Exception("Pipeline run failed: {}".format(response))
+            raise Exception("Pipeline run failed: {}".format(response.text))
         if (
             # Context is not available in airflow v1.10.4
             "dag_run" in kwargs
