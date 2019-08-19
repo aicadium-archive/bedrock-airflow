@@ -128,12 +128,19 @@ class RunPipelineOperator(BaseOperator):
 
     template_fields = ("pipeline_id",)
 
-    def __init__(self, conn_id, pipeline_id, status_poke_interval=15, **kwargs):
+    def __init__(
+        self,
+        conn_id,
+        pipeline_id,
+        run_source_commit="master",  # runs latest commit if branch is supplied
+        status_poke_interval=15,
+        **kwargs
+    ):
         super().__init__(**kwargs)
         self.conn_id = conn_id
         self.pipeline_id = pipeline_id
         self.pipeline_run_id = None
-        self.run_source_commit = kwargs.get("run_source_commit")
+        self.run_source_commit = run_source_commit
         self.status_poke_interval = status_poke_interval
 
     def execute(self, context):
@@ -150,10 +157,12 @@ class RunPipelineOperator(BaseOperator):
 
         # Run the training pipeline
         hook = BedrockHook(method="POST", bedrock_conn_id=self.conn_id)
-        run_params = {"environment_public_id": environment_id}
-        if self.run_source_commit is not None:
-            run_params["run_source_commit"] = self.run_source_commit
-        data = json.dumps(run_params)
+        data = json.dumps(
+            {
+                "environment_public_id": environment_id,
+                "run_source_commit": self.run_source_commit,
+            }
+        )
 
         try:
             res = hook.run(
