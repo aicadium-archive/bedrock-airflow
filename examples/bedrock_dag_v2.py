@@ -3,7 +3,6 @@ from datetime import datetime
 from os import getenv
 
 from airflow import DAG
-from airflow.api.common.experimental.trigger_dag import trigger_dag
 from airflow.models import Variable
 from airflow.operators.http_operator import SimpleHttpOperator
 from airflow.operators.python_operator import PythonOperator
@@ -27,21 +26,7 @@ class JsonHttpOperator(SimpleHttpOperator):
         return json.loads(text)
 
 
-args = {
-    'owner': 'airflow',
-    'depends_on_past': False,
-    'wait_for_downstream': False,
-    'start_date': datetime(2019, 7, 24),
-}
-
-with DAG(
-    dag_id="bedrock_dag_v2",
-    default_args=args,
-    schedule_interval="@daily",
-    catchup=False,
-    max_active_runs=1,
-    on_failure_callback=lambda context: trigger_dag("bedrock_dag_v2")
-) as dag:
+with DAG("bedrock_dag_v2", start_date=datetime(2019, 7, 24), catchup=False) as dag:
     get_environment = JsonHttpOperator(
         task_id="get_environment",
         http_conn_id=CONN_ID,
@@ -69,13 +54,6 @@ with DAG(
         xcom_push=True,
     )
 
-    def is_success(response):
-        status = response.json()["status"]
-        if status == "Succeeded":
-            return True
-        if status in ["Failed", "Stopped"]:
-            raise Exception("Pipeline run failed: {}".format(response))
-        return False
     check_status = HttpSensor(
         task_id="check_status",
         http_conn_id=CONN_ID,
@@ -83,7 +61,7 @@ with DAG(
             API_VERSION, "{{ ti.xcom_pull(task_ids='run_pipeline')['entity_id'] }}"
         ),
         method="GET",
-        response_check=is_success,
+        response_check=lambda response: response.json()["status"] == "Succeeded",
         poke_interval=5,
     )
 
