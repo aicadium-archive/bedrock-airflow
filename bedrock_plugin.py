@@ -148,12 +148,12 @@ class RunPipelineOperator(BaseOperator):
         get_hook = BedrockHook(method="GET", bedrock_conn_id=self.conn_id)
 
         try:
-            response = get_hook.run(RunPipelineOperator.GET_ENVIRONMENT_PATH)
+            res = get_hook.run(RunPipelineOperator.GET_ENVIRONMENT_PATH)
         except AirflowException as ex:
             self.log.error("Failed to run pipeline")
             raise ex
 
-        environment_id = json.loads(response.content)[0]["public_id"]
+        environment_id = json.loads(res.content)[0]["public_id"]
 
         # Run the training pipeline
         hook = BedrockHook(method="POST", bedrock_conn_id=self.conn_id)
