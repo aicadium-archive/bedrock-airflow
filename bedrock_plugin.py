@@ -61,8 +61,8 @@ class BedrockHook(HttpHook):
         resp = conn.getresponse()
         data = json.loads(resp.read())
 
-        if not data["access_token"]:
-            raise Exception(data)
+        if "access_token" not in data:
+            raise Exception("Failed to authenticate with Bedrock: {}".format(data))
 
         self.bedrock_token = data["access_token"]
         self.bedrock_token_expiry = datetime.datetime.now() + datetime.timedelta(
