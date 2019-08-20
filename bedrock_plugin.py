@@ -151,7 +151,7 @@ class RunPipelineOperator(BaseOperator):
         self,
         conn_id,
         pipeline_id,
-        run_source_commit="master",  # runs latest commit if branch is supplied
+        run_source_commit,  # specify branch for latest commit, e.g., 'master'
         status_poke_interval=15,
         **kwargs
     ):
