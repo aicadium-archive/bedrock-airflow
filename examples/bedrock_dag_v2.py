@@ -50,7 +50,9 @@ with DAG(dag_id="bedrock_dag_v2", start_date=days_ago(1), catchup=False) as dag:
         xcom_push=True,
     )
 
-    def is_success(response, **kwargs):
+    def is_success(response):
+        if response.status_code != 200:
+            return False
         status = response.json()["status"]
         if status == "Succeeded":
             return True

@@ -5,7 +5,6 @@ from os import getenv
 from airflow import DAG
 from airflow.models import Variable
 from airflow.operators.http_operator import SimpleHttpOperator
-from airflow.operators.python_operator import PythonOperator
 from airflow.sensors.http_sensor import HttpSensor
 from airflow.utils.dates import days_ago
 from airflow.utils.trigger_rule import TriggerRule
@@ -52,7 +51,9 @@ def train_subdag(parent_dag_name):
             xcom_push=True,
         )
 
-        def is_success(response, **kwargs):
+        def is_success(response):
+            if response.status_code != 200:
+                return False
             status = response.json()["status"]
             if status == "Succeeded":
                 return True
@@ -128,7 +129,9 @@ def deploy_subdag(parent_dag_name):
             xcom_push=True,
         )
 
-        def is_success(response, **kwargs):
+        def is_success(response):
+            if response.status_code != 200:
+                return False
             status = response.json()["status"]
             if status == "Deployed":
                 return True
@@ -153,58 +156,4 @@ def deploy_subdag(parent_dag_name):
         )
 
         check_auc >> deploy_model >> check_server
-        return dag
-
-
-def undeploy_subdag(parent_dag_name):
-    with DAG(
-        dag_id="{}.undeploy".format(parent_dag_name), start_date=days_ago(1)
-    ) as dag:
-        get_endpoint = JsonHttpOperator(
-            task_id="get_endpoint",
-            http_conn_id=CONN_ID,
-            endpoint="{}/endpoint/{}".format(
-                API_VERSION, run_options["pipeline_public_id"]
-            ),
-            method="GET",
-            response_check=lambda response: len(response.json()["deployments"]) > 0,
-            xcom_push=True,
-        )
-
-        def undeploy_previous(**kwargs):
-            deployments = kwargs["ti"].xcom_pull(task_ids="get_endpoint")["deployments"]
-            past_models = sorted(deployments, key=lambda d: d["created_at"])[:-1]
-            for model in past_models:
-                SimpleHttpOperator(
-                    task_id="undeploy_model",
-                    http_conn_id=CONN_ID,
-                    endpoint="{}/serve/id/{}/deploy".format(
-                        API_VERSION, model["entity_id"]
-                    ),
-                    method="DELETE",
-                    response_check=lambda response: response.status_code == 202,
-                ).execute(kwargs)
-
-        undeploy_previous = PythonOperator(
-            task_id="undeploy_previous",
-            python_callable=undeploy_previous,
-            provide_context=True,
-        )
-
-        check_endpoint = HttpSensor(
-            task_id="check_endpoint",
-            http_conn_id=CONN_ID,
-            endpoint="{}/endpoint/{}".format(
-                API_VERSION, run_options["pipeline_public_id"]
-            ),
-            method="GET",
-            response_check=lambda response: len(response.json()["deployments"]) == 1,
-            # Use a short interval since deployment should be relatively fast
-            poke_interval=10,
-            timeout=timedelta(minutes=5).total_seconds(),
-            # Avoid raising exceptions on non 2XX or 3XX status codes
-            extra_options={"check_response": False},
-        )
-
-        get_endpoint >> undeploy_previous >> check_endpoint
         return dag
