@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timedelta
+from datetime import timedelta
 from os import getenv
 
 from airflow import DAG
@@ -49,20 +49,13 @@ with DAG(dag_id="bedrock_dag_v2", start_date=days_ago(1), catchup=False) as dag:
         xcom_push=True,
     )
 
-    retry_timeout = timedelta(hours=12)
-
     def is_success(response, **kwargs):
         status = response.json()["status"]
         if status == "Succeeded":
             return True
         if status in ["Failed", "Stopped"]:
+            # Exceptions will be bubbled up to stop the sensor
             raise Exception("Pipeline run failed: {}".format(response.text))
-        if (
-            # Context is not available in airflow v1.10.4
-            "dag_run" in kwargs
-            and datetime.utcnow() > kwargs["dag_run"].start_date + retry_timeout
-        ):
-            raise Exception("Exceeded retry timeout: {}".format(retry_timeout))
         return False
 
     check_status = HttpSensor(
@@ -77,11 +70,9 @@ with DAG(dag_id="bedrock_dag_v2", start_date=days_ago(1), catchup=False) as dag:
         # Use reschedule mode to not block the worker queue
         mode="reschedule",
         # Retry timeout should match the expected training time for this pipeline
-        timeout=retry_timeout.total_seconds(),
-        provide_context=True,
-        # Sensor will fail immediately on non-200 response code, retry a few times
-        retries=5,
-        retry_delay=timedelta(seconds=60),
+        timeout=timedelta(hours=12).total_seconds(),
+        # Avoid raising exceptions on non 2XX or 3XX status codes
+        extra_options={"check_response": False},
     )
 
     stop_run = JsonHttpOperator(

@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timedelta
+from datetime import timedelta
 from os import getenv
 
 from airflow import DAG
@@ -60,20 +60,13 @@ def train_subdag(parent_dag_name):
             xcom_push=True,
         )
 
-        retry_timeout = timedelta(hours=12)
-
         def is_success(response, **kwargs):
             status = response.json()["status"]
             if status == "Succeeded":
                 return True
             if status in ["Failed", "Stopped"]:
+                # Exceptions will be bubbled up to stop the sensor
                 raise Exception("Pipeline run failed: {}".format(response))
-            if (
-                # Context is not available in airflow v1.10.4
-                "dag_run" in kwargs
-                and datetime.utcnow() > kwargs["dag_run"].start_date + retry_timeout
-            ):
-                raise Exception("Exceeded retry timeout: {}".format(retry_timeout))
             return False
 
         check_status = HttpSensor(
@@ -88,11 +81,9 @@ def train_subdag(parent_dag_name):
             # Use reschedule mode to not block the worker queue
             mode="reschedule",
             # Retry timeout should match the expected training time for this pipeline
-            timeout=retry_timeout.total_seconds(),
-            provide_context=True,
-            # Sensor will fail immediately on non-200 response code, retry a few times
-            retries=5,
-            retry_delay=timedelta(seconds=60),
+            timeout=timedelta(hours=12).total_seconds(),
+            # Avoid raising exceptions on non 2XX or 3XX status codes
+            extra_options={"check_response": False},
         )
 
         stop_run = JsonHttpOperator(
@@ -148,20 +139,13 @@ def deploy_subdag(parent_dag_name):
             xcom_push=True,
         )
 
-        retry_timeout = timedelta(minutes=5)
-
         def is_success(response, **kwargs):
             status = response.json()["status"]
             if status == "Deployed":
                 return True
             if status in ["Stopped", "Failed", "Error"]:
+                # Exceptions will be bubbled up to stop the sensor
                 raise Exception("Deployment failed: {}".format(response))
-            if (
-                # Context is not available in airflow v1.10.4
-                "dag_run" in kwargs
-                and datetime.utcnow() > kwargs["dag_run"].start_date + retry_timeout
-            ):
-                raise Exception("Exceeded retry timeout: {}".format(retry_timeout))
             return False
 
         check_server = HttpSensor(
@@ -174,11 +158,9 @@ def deploy_subdag(parent_dag_name):
             response_check=is_success,
             # Use a short interval since deployment should be relatively fast
             poke_interval=10,
-            timeout=retry_timeout.total_seconds(),
-            provide_context=True,
-            # Sensor will fail immediately on non-200 response code, retry a few times
-            retries=5,
-            retry_delay=timedelta(seconds=60),
+            timeout=timedelta(minutes=5).total_seconds(),
+            # Avoid raising exceptions on non 2XX or 3XX status codes
+            extra_options={"check_response": False},
         )
 
         check_auc >> deploy_model >> check_server
@@ -232,11 +214,9 @@ def undeploy_subdag(parent_dag_name):
             response_check=lambda response: len(response.json()["deployments"]) == 1,
             # Use a short interval since deployment should be relatively fast
             poke_interval=10,
-            timeout=300,
-            provide_context=True,
-            # Sensor will fail immediately on non-200 response code, retry a few times
-            retries=5,
-            retry_delay=timedelta(seconds=60),
+            timeout=timedelta(minutes=5).total_seconds(),
+            # Avoid raising exceptions on non 2XX or 3XX status codes
+            extra_options={"check_response": False},
         )
 
         get_endpoint >> undeploy_previous >> check_endpoint
