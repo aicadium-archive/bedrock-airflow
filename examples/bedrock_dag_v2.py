@@ -78,14 +78,14 @@ with DAG(dag_id="bedrock_dag_v2", start_date=days_ago(1), catchup=False) as dag:
         extra_options={"check_response": False},
     )
 
-    stop_run = JsonHttpOperator(
+    stop_run = SimpleHttpOperator(
         task_id="stop_run",
         http_conn_id=CONN_ID,
         endpoint="{}/training_run/{}/status".format(
             API_VERSION, "{{ ti.xcom_pull(task_ids='run_pipeline')['entity_id'] }}"
         ),
         method="PUT",
-        response_check=lambda response: response.status_code == 200,
+        response_check=lambda response: response.status_code == 202,
         trigger_rule=TriggerRule.ONE_FAILED,
         xcom_push=True,
     )

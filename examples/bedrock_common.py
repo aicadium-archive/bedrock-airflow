@@ -80,14 +80,14 @@ def train_subdag(parent_dag_name):
         )
 
         # TODO: trigger stop run only on timeout
-        stop_run = JsonHttpOperator(
+        stop_run = SimpleHttpOperator(
             task_id="stop_run",
             http_conn_id=CONN_ID,
             endpoint="{}/training_run/{}/status".format(
                 API_VERSION, "{{ ti.xcom_pull(task_ids='run_pipeline')['entity_id'] }}"
             ),
             method="PUT",
-            response_check=lambda response: response.status_code == 200,
+            response_check=lambda response: response.status_code == 202,
             trigger_rule=TriggerRule.ONE_FAILED,
             xcom_push=True,
         )
