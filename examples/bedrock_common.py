@@ -12,15 +12,18 @@ from airflow.utils.trigger_rule import TriggerRule
 
 API_VERSION = "v1"
 # An airflow connection must be created with a valid auth token
-CONN_ID = "bedrock"
+CONN_ID = "bedrock_v2"
 
 run_options = Variable.get(
-    "bedrock_config",
+    "bedrock_config_v2",
     deserialize_json=True,
-    default_var={"pipeline_public_id": getenv("PIPELINE_PUBLIC_ID", "bedrock")},
+    default_var={
+        # Value can be obtained from creating a pipeline on Bedrock UI
+        "pipeline_public_id": getenv("PIPELINE_PUBLIC_ID", "bedrock"),
+        # Value can be obtained from environment dropdown list of run pipeline page
+        "environment_public_id": getenv("ENVIRONMENT_PUBLIC_ID", "bedrock"),
+    },
 )
-
-HEADERS = {"Content-Type": "application/json"}
 
 
 class JsonHttpOperator(SimpleHttpOperator):
@@ -31,16 +34,6 @@ class JsonHttpOperator(SimpleHttpOperator):
 
 def train_subdag(parent_dag_name):
     with DAG(dag_id="{}.train".format(parent_dag_name), start_date=days_ago(1)) as dag:
-        get_environment = JsonHttpOperator(
-            task_id="get_environment",
-            http_conn_id=CONN_ID,
-            endpoint="{}/environment/".format(API_VERSION),
-            method="GET",
-            headers=HEADERS,
-            response_check=lambda response: len(response.json()) > 0,
-            xcom_push=True,
-        )
-
         run_pipeline = JsonHttpOperator(
             task_id="run_pipeline",
             http_conn_id=CONN_ID,
@@ -50,12 +43,11 @@ def train_subdag(parent_dag_name):
             method="POST",
             data=json.dumps(
                 {
-                    "environment_public_id": "{{ ti.xcom_pull(task_ids='get_environment')[0]['public_id'] }}",
+                    "environment_public_id": run_options["environment_public_id"],
                     # Specifies the branch or commit for the pipeline run
                     "run_source_commit": "master",
                 }
             ),
-            headers=HEADERS,
             response_check=lambda response: response.status_code == 202,
             xcom_push=True,
         )
@@ -93,13 +85,12 @@ def train_subdag(parent_dag_name):
                 API_VERSION, "{{ ti.xcom_pull(task_ids='run_pipeline')['entity_id'] }}"
             ),
             method="PUT",
-            headers=HEADERS,
             response_check=lambda response: response.status_code == 200,
             trigger_rule=TriggerRule.ONE_FAILED,
             xcom_push=True,
         )
 
-        get_environment >> run_pipeline >> check_status >> stop_run
+        run_pipeline >> check_status >> stop_run
         return dag
 
 
@@ -117,7 +108,6 @@ def deploy_subdag(parent_dag_name):
                 "{{ ti.xcom_pull(dag_id=params['train_dag'], task_ids='run_pipeline')['entity_id'] }}",
             ),
             method="GET",
-            headers=HEADERS,
             response_check=lambda response: response.json()["metrics"]["AUC"] > 0.92,
             xcom_push=True,
         )
@@ -134,7 +124,6 @@ def deploy_subdag(parent_dag_name):
                     "public_id": run_options["pipeline_public_id"],
                 }
             ),
-            headers=HEADERS,
             response_check=lambda response: response.status_code == 202,
             xcom_push=True,
         )
@@ -178,7 +167,6 @@ def undeploy_subdag(parent_dag_name):
                 API_VERSION, run_options["pipeline_public_id"]
             ),
             method="GET",
-            headers=HEADERS,
             response_check=lambda response: len(response.json()["deployments"]) > 0,
             xcom_push=True,
         )
@@ -194,7 +182,6 @@ def undeploy_subdag(parent_dag_name):
                         API_VERSION, model["entity_id"]
                     ),
                     method="DELETE",
-                    headers=HEADERS,
                     response_check=lambda response: response.status_code == 202,
                 ).execute(kwargs)
 
