@@ -129,7 +129,7 @@ class RunPipelineOperator(BaseOperator):
 
     def _cleanup_run(self, pipeline_run_id):
         self.log.info("Stopping pipeline run")
-        hook = post_hook or HttpHook(method="PUT", http_conn_id=self.conn_id)
+        hook = HttpHook(method="PUT", http_conn_id=self.conn_id)
         hook.run(
             RunPipelineOperator.STOP_PIPELINE_RUN_PATH.format(pipeline_run_id),
             headers=hook.get_connection(self.conn_id).extra_dejson,
