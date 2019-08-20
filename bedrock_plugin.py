@@ -71,7 +71,7 @@ class BedrockHook(HttpHook):
 
 
 class CreatePipelineOperator(BaseOperator):
-    CREATE_PIPELINE_PATH = "{}/pipeline/".format(API_VERSION)
+    CREATE_PIPELINE_PATH = "/{}/pipeline/".format(API_VERSION)
 
     def __init__(
         self,
@@ -119,10 +119,10 @@ class CreatePipelineOperator(BaseOperator):
 
 
 class RunPipelineOperator(BaseOperator):
-    GET_ENVIRONMENT_PATH = "{}/environment/".format(API_VERSION)
-    RUN_PIPELINE_PATH = "{}/pipeline/{{}}/run/".format(API_VERSION)
-    GET_PIPELINE_RUN_PATH = "{}/run/{{}}".format(API_VERSION)
-    STOP_PIPELINE_RUN_PATH = "{}/training_run/{{}}/status".format(API_VERSION)
+    GET_ENVIRONMENT_PATH = "/{}/environment/".format(API_VERSION)
+    RUN_PIPELINE_PATH = "/{}/pipeline/{{}}/run/".format(API_VERSION)
+    GET_PIPELINE_RUN_PATH = "/{}/run/{{}}".format(API_VERSION)
+    STOP_PIPELINE_RUN_PATH = "/{}/training_run/{{}}/status".format(API_VERSION)
     WAIT_STATUS = ["Running", "Queued"]
     SUCCESS_STATUS = ["Succeeded"]
 

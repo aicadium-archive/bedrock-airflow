@@ -1,11 +1,11 @@
-from datetime import datetime
 from os import getenv
 
 from airflow import DAG
 from airflow.models import Variable
 from airflow.operators.bedrock_plugin import CreatePipelineOperator, RunPipelineOperator
+from airflow.utils.dates import days_ago
 
-dag = DAG("bedrock_dag", start_date=datetime(2019, 7, 24), catchup=False)
+dag = DAG("bedrock_dag", start_date=days_ago(1), catchup=False)
 
 create_options = Variable.get(
     "bedrock_create_training_pipeline_config",
@@ -24,7 +24,7 @@ create = CreatePipelineOperator(
     dag=dag,
     conn_id="bedrock",
     name="My Bedrock Airflow DAG",
-    **create_options,
+    **create_options
 )
 
 run = RunPipelineOperator(
