@@ -79,6 +79,7 @@ def train_subdag(parent_dag_name):
             extra_options={"check_response": False},
         )
 
+        # TODO: trigger stop run only on timeout
         stop_run = JsonHttpOperator(
             task_id="stop_run",
             http_conn_id=CONN_ID,
@@ -109,6 +110,7 @@ def deploy_subdag(parent_dag_name):
                 "{{ ti.xcom_pull(dag_id=params['train_dag'], task_ids='run_pipeline')['entity_id'] }}",
             ),
             method="GET",
+            # TODO: support other conditions for deploying model
             response_check=lambda response: response.json()["metrics"]["AUC"] > 0.92,
             xcom_push=True,
         )

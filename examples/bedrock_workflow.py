@@ -60,6 +60,7 @@ with DAG(
     def undeploy_model(**kwargs):
         deployments = kwargs["ti"].xcom_pull(task_ids="get_endpoint")["deployments"]
         past_models = sorted(deployments, key=lambda d: d["created_at"])[:-1]
+        # TODO: find a better way to track these dynamic operators
         for model in past_models:
             SimpleHttpOperator(
                 task_id="undeploy_model",
