@@ -80,6 +80,7 @@ class RunPipelineOperator(BaseOperator):
             res = hook.run(
                 RunPipelineOperator.RUN_PIPELINE_PATH.format(self.pipeline_id),
                 data=data,
+                headers=hook.get_connection(self.conn_id).extra_dejson,
             )
         except AirflowException as ex:
             self.log.error("Failed to run pipeline")
@@ -107,6 +108,7 @@ class RunPipelineOperator(BaseOperator):
 
         res = hook.run(
             RunPipelineOperator.GET_PIPELINE_RUN_PATH.format(pipeline_run_id),
+            headers=hook.get_connection(self.conn_id).extra_dejson,
             # Avoid raising exceptions on non 2XX or 3XX status codes
             extra_options={"check_response": False},
         )
@@ -130,6 +132,7 @@ class RunPipelineOperator(BaseOperator):
         hook = post_hook or HttpHook(method="POST", http_conn_id=self.conn_id)
         hook.run(
             RunPipelineOperator.STOP_PIPELINE_RUN_PATH.format(pipeline_run_id),
+            headers=hook.get_connection(self.conn_id).extra_dejson,
             extra_options={"check_response": False},
         )
         # Don't raise if we failed to stop
