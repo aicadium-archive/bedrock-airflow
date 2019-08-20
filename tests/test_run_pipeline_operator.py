@@ -22,6 +22,7 @@ def test_run_pipeline(airflow_connection):
         dag=dag,
         conn_id=airflow_connection,
         pipeline_id=pipeline_id,
+        run_source_commit="master",
     )
 
     def bedrockhook_run_side_effect(endpoint, *_args, **_kwargs):
@@ -70,6 +71,7 @@ def test_run_pipeline_waiting(airflow_connection):
         dag=dag,
         conn_id=airflow_connection,
         pipeline_id=pipeline_id,
+        run_source_commit="master",
     )
 
     _outer = {"has_waited": False}
@@ -127,6 +129,7 @@ def test_run_pipeline_failure(airflow_connection):
         dag=dag,
         conn_id=airflow_connection,
         pipeline_id=pipeline_id,
+        run_source_commit="master",
     )
 
     def bedrockhook_run_side_effect(endpoint, *_args, **_kwargs):
