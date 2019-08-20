@@ -119,6 +119,25 @@ class CreatePipelineOperator(BaseOperator):
 
 
 class RunPipelineOperator(BaseOperator):
+    """Runs a pipeline and monitors it
+
+    Attributes
+    ----------
+    conn_id : str
+        Connection that has the base API url
+
+    pipeline_id : str
+        Pipeline public id
+
+    run_source_commit : str
+        The git commit version to run. If the branch is specified, the
+        latest commit of the branch is fetched, else if None is specified,
+        the commit version when the pipeline was created will be fetched
+
+    status_poke_interval : int
+        Interval to check the status of the pipeline
+    """
+
     GET_ENVIRONMENT_PATH = "/{}/environment/".format(API_VERSION)
     RUN_PIPELINE_PATH = "/{}/pipeline/{{}}/run/".format(API_VERSION)
     GET_PIPELINE_RUN_PATH = "/{}/run/{{}}".format(API_VERSION)
@@ -128,11 +147,19 @@ class RunPipelineOperator(BaseOperator):
 
     template_fields = ("pipeline_id",)
 
-    def __init__(self, conn_id, pipeline_id, status_poke_interval=15, **kwargs):
+    def __init__(
+        self,
+        conn_id,
+        pipeline_id,
+        run_source_commit,  # specify branch for latest commit, e.g., 'master'
+        status_poke_interval=15,
+        **kwargs
+    ):
         super().__init__(**kwargs)
         self.conn_id = conn_id
         self.pipeline_id = pipeline_id
         self.pipeline_run_id = None
+        self.run_source_commit = run_source_commit
         self.status_poke_interval = status_poke_interval
 
     def execute(self, context):
@@ -140,16 +167,21 @@ class RunPipelineOperator(BaseOperator):
         get_hook = BedrockHook(method="GET", bedrock_conn_id=self.conn_id)
 
         try:
-            response = get_hook.run(RunPipelineOperator.GET_ENVIRONMENT_PATH)
+            res = get_hook.run(RunPipelineOperator.GET_ENVIRONMENT_PATH)
         except AirflowException as ex:
             self.log.error("Failed to run pipeline")
             raise ex
 
-        environment_id = json.loads(response.content)[0]["public_id"]
+        environment_id = json.loads(res.content)[0]["public_id"]
 
         # Run the training pipeline
         hook = BedrockHook(method="POST", bedrock_conn_id=self.conn_id)
-        data = json.dumps({"environment_public_id": environment_id})
+        data = json.dumps(
+            {
+                "environment_public_id": environment_id,
+                "run_source_commit": self.run_source_commit,
+            }
+        )
 
         try:
             res = hook.run(

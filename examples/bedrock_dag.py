@@ -32,6 +32,7 @@ run = RunPipelineOperator(
     dag=dag,
     conn_id="bedrock",
     pipeline_id="{{ ti.xcom_pull(task_ids='create_pipeline') }}",
-)  # this field is templated, can pull xcom from previous operators
+    run_source_commit='master'
+)  # `pipeline_id` is templated, can pull xcom from previous operators
 
 create >> run
