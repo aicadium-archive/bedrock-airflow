@@ -31,6 +31,11 @@ class RunPipelineOperator(BaseOperator):
         The public id of the environment to run the pipeline in. This value
         can be obtained from Bedrock UI by clicking on run pipeline.
 
+    resources : dict(str)
+        Resources to run the pipeline, of the form
+        {"cpu": "4",
+         "memory": "16G"}
+
     status_poke_interval : int
         Interval to check the status of the pipeline
 
@@ -53,16 +58,20 @@ class RunPipelineOperator(BaseOperator):
         pipeline_id,
         run_source_commit,  # specify branch for latest commit, e.g., 'master'
         environment_id,  # obtained from run pipeline page on Bedrock UI
+        resources=None,  # specify resources
         status_poke_interval=15,
         run_timeout=timedelta(hours=1),
         **kwargs
     ):
         super().__init__(**kwargs)
+        if resources is None:
+            resources = {"cpu": "2", "memory": "4G"}
         self.conn_id = conn_id
         self.pipeline_id = pipeline_id
         self.pipeline_run_id = None
         self.run_source_commit = run_source_commit
         self.environment_id = environment_id
+        self.resources = resources
         self.status_poke_interval = status_poke_interval
         self.run_timeout = run_timeout
 
@@ -73,6 +82,7 @@ class RunPipelineOperator(BaseOperator):
             {
                 "environment_public_id": self.environment_id,
                 "run_source_commit": self.run_source_commit,
+                "resources": self.resources,
             }
         )
 
