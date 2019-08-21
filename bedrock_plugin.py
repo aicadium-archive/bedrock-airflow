@@ -80,6 +80,7 @@ class RunPipelineOperator(BaseOperator):
             res = hook.run(
                 RunPipelineOperator.RUN_PIPELINE_PATH.format(self.pipeline_id),
                 data=data,
+                headers=hook.get_connection(self.conn_id).extra_dejson,
             )
         except AirflowException as ex:
             self.log.error("Failed to run pipeline")
@@ -99,7 +100,7 @@ class RunPipelineOperator(BaseOperator):
                 return
             time.sleep(self.status_poke_interval)
 
-        self._cleanup_run(pipeline_run_id, post_hook=hook)
+        self._cleanup_run(pipeline_run_id)
         raise Exception("Run timed out {}".format(pipeline_run_id))
 
     def _check_status(self, hook, pipeline_run_id):
@@ -107,6 +108,7 @@ class RunPipelineOperator(BaseOperator):
 
         res = hook.run(
             RunPipelineOperator.GET_PIPELINE_RUN_PATH.format(pipeline_run_id),
+            headers=hook.get_connection(self.conn_id).extra_dejson,
             # Avoid raising exceptions on non 2XX or 3XX status codes
             extra_options={"check_response": False},
         )
@@ -125,11 +127,12 @@ class RunPipelineOperator(BaseOperator):
         else:
             raise Exception("Run status is {}".format(status))
 
-    def _cleanup_run(self, pipeline_run_id, post_hook=None):
+    def _cleanup_run(self, pipeline_run_id):
         self.log.info("Stopping pipeline run")
-        hook = post_hook or HttpHook(method="POST", http_conn_id=self.conn_id)
+        hook = HttpHook(method="PUT", http_conn_id=self.conn_id)
         hook.run(
             RunPipelineOperator.STOP_PIPELINE_RUN_PATH.format(pipeline_run_id),
+            headers=hook.get_connection(self.conn_id).extra_dejson,
             extra_options={"check_response": False},
         )
         # Don't raise if we failed to stop
