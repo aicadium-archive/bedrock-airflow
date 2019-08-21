@@ -53,6 +53,7 @@ class RunPipelineOperator(BaseOperator):
         pipeline_id,
         run_source_commit,  # specify branch for latest commit, e.g., 'master'
         environment_id,  # obtained from run pipeline page on Bedrock UI
+        resources,  # specify resources = {"cpu": "x", "memory": "xxG"}
         status_poke_interval=15,
         run_timeout=timedelta(hours=1),
         **kwargs
@@ -63,6 +64,7 @@ class RunPipelineOperator(BaseOperator):
         self.pipeline_run_id = None
         self.run_source_commit = run_source_commit
         self.environment_id = environment_id
+        self.resources = resources
         self.status_poke_interval = status_poke_interval
         self.run_timeout = run_timeout
 
@@ -73,6 +75,7 @@ class RunPipelineOperator(BaseOperator):
             {
                 "environment_public_id": self.environment_id,
                 "run_source_commit": self.run_source_commit,
+                "resources": self.resources,
             }
         )
 
