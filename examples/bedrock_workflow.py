@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from airflow import DAG
+from airflow.models import DagBag
 from airflow.operators.http_operator import SimpleHttpOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.operators.subdag_operator import SubDagOperator
@@ -24,6 +25,21 @@ args = {
 
 DAG_NAME = "bedrock_workflow"
 
+
+def clear_subdag(context):
+    dag_id = "{}.{}".format(context["dag"].dag_id, context["ti"].task_id)
+    execution_date = context["execution_date"]
+    sdag = DagBag().get_dag(dag_id)
+    sdag.clear(
+        start_date=execution_date,
+        end_date=execution_date,
+        only_failed=False,
+        only_running=False,
+        confirm_prompt=False,
+        include_subdags=False,
+    )
+
+
 with DAG(
     dag_id=DAG_NAME,
     default_args=args,
@@ -35,15 +51,17 @@ with DAG(
     train = SubDagOperator(
         task_id="train",
         subdag=train_subdag(DAG_NAME),
-        retries=3,
-        retry_delay=timedelta(seconds=5),
+        retries=2,
+        retry_delay=timedelta(seconds=10),
+        on_retry_callback=clear_subdag,
     )
 
     deploy = SubDagOperator(
         task_id="deploy",
         subdag=deploy_subdag(DAG_NAME),
-        retries=3,
-        retry_delay=timedelta(seconds=5),
+        retries=2,
+        retry_delay=timedelta(seconds=10),
+        on_retry_callback=clear_subdag,
     )
 
     get_endpoint = JsonHttpOperator(

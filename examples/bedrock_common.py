@@ -11,7 +11,7 @@ from airflow.utils.trigger_rule import TriggerRule
 
 API_VERSION = "v1"
 # An airflow connection must be created with a valid auth token
-CONN_ID = "bedrock_v2"
+CONN_ID = "bedrock"
 
 run_options = Variable.get(
     "bedrock_config_v2",
