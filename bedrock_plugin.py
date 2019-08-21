@@ -31,6 +31,11 @@ class RunPipelineOperator(BaseOperator):
         The public id of the environment to run the pipeline in. This value
         can be obtained from Bedrock UI by clicking on run pipeline.
 
+    resources : dict(str)
+        Resources to run the pipeline, of the form
+        {"cpu": "4",
+         "memory": "16G"}
+
     status_poke_interval : int
         Interval to check the status of the pipeline
 
