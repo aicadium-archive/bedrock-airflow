@@ -58,12 +58,17 @@ class RunPipelineOperator(BaseOperator):
         pipeline_id,
         run_source_commit,  # specify branch for latest commit, e.g., 'master'
         environment_id,  # obtained from run pipeline page on Bedrock UI
-        resources,  # specify resources = {"cpu": "x", "memory": "xxG"}
+        resources=None,  # specify resources
         status_poke_interval=15,
         run_timeout=timedelta(hours=1),
         **kwargs
     ):
         super().__init__(**kwargs)
+        if resources is None:
+            resources = {
+                "cpu": "2",
+                "memory": "4G"
+            }
         self.conn_id = conn_id
         self.pipeline_id = pipeline_id
         self.pipeline_run_id = None
