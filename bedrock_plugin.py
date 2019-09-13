@@ -44,7 +44,7 @@ class RunPipelineOperator(BaseOperator):
         stop the operator.
     """
 
-    RUN_PIPELINE_PATH = "/{}/pipeline/{{}}/run/".format(API_VERSION)
+    RUN_PIPELINE_PATH = "/{}/training_pipeline/{{}}/run/".format(API_VERSION)
     GET_PIPELINE_RUN_PATH = "/{}/run/{{}}".format(API_VERSION)
     STOP_PIPELINE_RUN_PATH = "/{}/training_run/{{}}/status".format(API_VERSION)
     WAIT_STATUS = ["Running", "Queued"]
