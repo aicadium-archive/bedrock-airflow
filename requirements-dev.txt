@@ -3,6 +3,6 @@ pytest==4.6.4
 apache-airflow==1.10.3
 # recursive dependencies of airflow
 flask==1.0.4
-future<0.17,>=0.16.0
+future>=0.16.0,<0.19
 jinja2==2.10.0
 werkzeug==0.14.1
