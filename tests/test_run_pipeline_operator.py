@@ -32,8 +32,10 @@ def test_run_pipeline(airflow_connection):
     def bedrockhook_run_side_effect(endpoint, *_args, **_kwargs):
         resp = PropertyMock()
         if endpoint == RunPipelineOperator.RUN_PIPELINE_PATH.format(pipeline_id):
-            resp.content = '{{"entity_id": "{}"}}'.format(run_id)
-        elif endpoint == RunPipelineOperator.GET_PIPELINE_RUN_PATH.format(run_id):
+            resp.content = '{{"id": "{}"}}'.format(run_id)
+        elif endpoint == RunPipelineOperator.GET_PIPELINE_RUN_PATH.format(
+            pipeline_id, run_id
+        ):
             resp.status_code = 200
             resp.content = '{{"status": "{}"}}'.format(
                 RunPipelineOperator.SUCCESS_STATUS[0]
@@ -58,7 +60,7 @@ def test_run_pipeline(airflow_connection):
 
     check_status_call = mock_resp.mock_calls[1]
     assert check_status_call[1][0] == RunPipelineOperator.GET_PIPELINE_RUN_PATH.format(
-        run_id
+        pipeline_id, run_id
     )
 
 
@@ -82,8 +84,10 @@ def test_run_pipeline_waiting(airflow_connection):
     def bedrockhook_run_side_effect(endpoint, *_args, **_kwargs):
         resp = PropertyMock()
         if endpoint == RunPipelineOperator.RUN_PIPELINE_PATH.format(pipeline_id):
-            resp.content = '{{"entity_id": "{}"}}'.format(run_id)
-        elif endpoint == RunPipelineOperator.GET_PIPELINE_RUN_PATH.format(run_id):
+            resp.content = '{{"id": "{}"}}'.format(run_id)
+        elif endpoint == RunPipelineOperator.GET_PIPELINE_RUN_PATH.format(
+            pipeline_id, run_id
+        ):
             resp.status_code = 200
             if not _outer["has_waited"]:
                 resp.content = '{{"status": "{}"}}'.format(
@@ -114,7 +118,7 @@ def test_run_pipeline_waiting(airflow_connection):
 
     check_status_call = mock_resp.mock_calls[1]
     assert check_status_call[1][0] == RunPipelineOperator.GET_PIPELINE_RUN_PATH.format(
-        run_id
+        pipeline_id, run_id
     )
 
 
@@ -137,8 +141,10 @@ def test_run_pipeline_failure(airflow_connection):
     def bedrockhook_run_side_effect(endpoint, *_args, **_kwargs):
         resp = PropertyMock()
         if endpoint == RunPipelineOperator.RUN_PIPELINE_PATH.format(pipeline_id):
-            resp.content = '{{"entity_id": "{}"}}'.format(run_id)
-        elif endpoint == RunPipelineOperator.GET_PIPELINE_RUN_PATH.format(run_id):
+            resp.content = '{{"id": "{}"}}'.format(run_id)
+        elif endpoint == RunPipelineOperator.GET_PIPELINE_RUN_PATH.format(
+            pipeline_id, run_id
+        ):
             resp.status_code = 200
             resp.content = '{{"status": "{}"}}'.format(fail_status)
         elif endpoint == RunPipelineOperator.STOP_PIPELINE_RUN_PATH.format(run_id):
@@ -162,5 +168,5 @@ def test_run_pipeline_failure(airflow_connection):
 
     check_status_call = mock_resp.mock_calls[1]
     assert check_status_call[1][0] == RunPipelineOperator.GET_PIPELINE_RUN_PATH.format(
-        run_id
+        pipeline_id, run_id
     )

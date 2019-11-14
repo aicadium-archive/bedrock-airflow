@@ -45,7 +45,7 @@ class RunPipelineOperator(BaseOperator):
     """
 
     RUN_PIPELINE_PATH = "/{}/training_pipeline/{{}}/run/".format(API_VERSION)
-    GET_PIPELINE_RUN_PATH = "/{}/run/{{}}".format(API_VERSION)
+    GET_PIPELINE_RUN_PATH = "/{}/training_pipeline/{{}}/run/{{}}".format(API_VERSION)
     STOP_PIPELINE_RUN_PATH = "/{}/training_run/{{}}/status".format(API_VERSION)
     WAIT_STATUS = ["Running", "Queued"]
     SUCCESS_STATUS = ["Succeeded"]
@@ -96,7 +96,7 @@ class RunPipelineOperator(BaseOperator):
             self.log.error("Failed to run pipeline")
             raise ex
 
-        pipeline_run_id = json.loads(res.content)["entity_id"]
+        pipeline_run_id = json.loads(res.content)["id"]
         self.pipeline_run_id = pipeline_run_id  # Used for cleanup only
         self.log.info(
             "Pipeline successfully run, pipeline run ID: {}".format(pipeline_run_id)
@@ -117,7 +117,9 @@ class RunPipelineOperator(BaseOperator):
         self.log.info("Checking status")
 
         res = hook.run(
-            RunPipelineOperator.GET_PIPELINE_RUN_PATH.format(pipeline_run_id),
+            RunPipelineOperator.GET_PIPELINE_RUN_PATH.format(
+                self.pipeline_id, pipeline_run_id
+            ),
             headers=hook.get_connection(self.conn_id).extra_dejson,
             # Avoid raising exceptions on non 2XX or 3XX status codes
             extra_options={"check_response": False},
