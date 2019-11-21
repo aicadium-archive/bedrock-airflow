@@ -46,7 +46,13 @@ class RunPipelineOperator(BaseOperator):
 
     RUN_PIPELINE_PATH = "/{}/training_pipeline/{{}}/run/".format(API_VERSION)
     GET_PIPELINE_RUN_PATH = "/{}/training_pipeline/{{}}/run/{{}}".format(API_VERSION)
-    STOP_PIPELINE_RUN_PATH = "/{}/training_run/{{}}/status".format(API_VERSION)
+    STOP_PIPELINE_RUN_PATH = "/{}/training_pipeline/{{}}/run/{{}}/status".format(
+        API_VERSION
+    )
+    UPDATE_PIPELINE = "/{}/training_pipeline/{{}}/".format(API_VERSION)
+    GET_PIPELINE_RUN_LOGS_PATH = "/{}/training_pipeline/{{}}/run/{{}}/log".format(
+        API_VERSION
+    )
     WAIT_STATUS = ["Running", "Queued"]
     SUCCESS_STATUS = ["Succeeded"]
 
@@ -143,7 +149,9 @@ class RunPipelineOperator(BaseOperator):
         self.log.info("Stopping pipeline run")
         hook = HttpHook(method="PUT", http_conn_id=self.conn_id)
         hook.run(
-            RunPipelineOperator.STOP_PIPELINE_RUN_PATH.format(pipeline_run_id),
+            RunPipelineOperator.STOP_PIPELINE_RUN_PATH.format(
+                self.pipeline_id, pipeline_run_id
+            ),
             headers=hook.get_connection(self.conn_id).extra_dejson,
             extra_options={"check_response": False},
         )
