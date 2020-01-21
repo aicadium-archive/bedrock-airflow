@@ -1,4 +1,36 @@
-# Bedrock Airflow Plugin
+# Bedrock Airflow DAG
+
+This repository contains example Airflow DAGs for running pipelines on Bedrock.
+
+## Instructions
+
+1. Generate an API token on Bedrock
+2. Copy `examples/bedrock_dag_v2.py` to `~/airflow/dags/`, where `~/airflow` is path to your Airflow folder
+3. Open the Airflow web server by running `airflow webserver`
+4. Create a connection:
+   1. Go to Admin > Connections
+   2. Click on "Create" at the top
+   3. Fill in the connection details like below, leaving all other fields empty
+
+```
+Conn Id: bedrock
+Conn Type: HTTP
+Host: api.bdrk.ai
+Schema: https
+Extra: {"X-Bedrock-Access-Token": "<your generated here>"}
+```
+
+5. Switch on `bedrock_dag_v2` DAG from Airflow UI or run it from the command line, for e.g.
+
+```bash
+$> airflow test bedrock_dag_v2 create 2019-05-21
+```
+
+## Advanced Usage
+
+You can customise `bedrock_dag_v2.py` to fit your own Bedrock workflow. Generally, this requires creating one `HttpOperator` for each Bedrock API call and chaining them together in the same DAG. The list of available APIs is documented in our [tutorial wiki](https://github.com/basisai/bedrock-airflow/wiki/Interacting-with-Bedrock-API).
+
+# Bedrock Airflow Plugin (Deprecated)
 
 [![Build Status](https://travis-ci.com/basisai/bedrock-airflow.svg?branch=master)](https://travis-ci.com/basisai/bedrock-airflow)
 
