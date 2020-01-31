@@ -86,8 +86,8 @@ class RunPipelineOperator(BaseOperator):
         hook = HttpHook(method="POST", http_conn_id=self.conn_id)
         data = json.dumps(
             {
-                "environment_public_id": self.environment_id,
-                "run_source_commit": self.run_source_commit,
+                "environment_id": self.environment_id,
+                "source": {"commit": self.run_source_commit},
                 "resources": self.resources,
             }
         )
