@@ -1,5 +1,5 @@
 # Python 2.7 does not have pytest 5
-pytest==4.6.4
+pytest==6.1.2
 apache-airflow==1.10.6
 # recursive dependencies of airflow
 flask==1.0.4
